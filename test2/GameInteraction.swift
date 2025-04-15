@@ -8,40 +8,42 @@
 import RealityKit
 import TabletopKit
 
+import RealityKit
+import TabletopKit
+
 struct GameInteraction: TabletopInteraction.Delegate {
     let game: Game
 
-    mutating func update(interaction: TabletopKit.TabletopInteraction) {
-        let equipment = interaction.value.controlledEquipmentID
-        guard let destination = interaction.value.proposedDestination else {
-            return
+    mutating func update(interaction: TabletopInteraction) {
+        if interaction.value.phase == .started {
+            onPhaseStarted(interaction: interaction)
         }
 
         if interaction.value.phase == .ended {
-            interaction.addAction(.moveEquipment(matching: equipment, childOf: destination.equipmentID, pose: destination.pose))
+            onPhaseEnded(interaction: interaction)
         }
-
-//        if interaction.value.phase == .started {
-//            onPhaseStarted(interaction: interaction)
-//        }
-//
-//        if interaction.value.gesture?.phase == .ended {
-//            onGesturePhaseEnded(interaction: interaction)
-//        }
-//
-//        if interaction.value.phase == .ended {
-//            destination = nil
-//            onPhaseEnded(interaction: interaction)
-//        }
-
     }
 
     func onPhaseStarted(interaction: TabletopInteraction) {
-    }
-
-    func onGesturePhaseEnded(interaction: TabletopInteraction) {
+        if let card = game.tabletopGame.equipment(of: MemoryCard.self, matching: interaction.value.startingEquipmentID) {
+            // Mark card as flippable
+            //interaction.setAllowedDestinations(.restricted([]))
+            //interaction.addAction(.updateEquipment(card, faceUp: true, seatControl: .restricted([])))
+        }
     }
 
     func onPhaseEnded(interaction: TabletopInteraction) {
+        guard let card = game.tabletopGame.equipment(of: MemoryCard.self, matching: interaction.value.startingEquipmentID) else {
+            return
+        }
+
+        // Always move the card back to its original position
+        interaction.addAction(
+            .moveEquipment(
+                matching: card.id,
+                childOf: .tableID,
+                pose: card.initialState.pose
+            )
+        )
     }
 }

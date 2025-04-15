@@ -19,13 +19,21 @@ class GameObserver: TabletopGame.Observer {
     }
 
     func actionIsPending(_ action: some TabletopAction, oldSnapshot: TableSnapshot, newSnapshot: TableSnapshot) {
-        if let action = action as? MoveEquipmentAction {
-            print("actionIsPending:  \(action)")
-        }
+        // No special sounds/actions needed yet
     }
 
     func actionWasConfirmed(_ action: some TabletopAction, oldSnapshot: TableSnapshot, newSnapshot: TableSnapshot) {
-        print("actionWasConfirmed:  \(action)")
+        if let moveAction = action as? MoveEquipmentAction,
+           let (card, _) = newSnapshot.equipment(of: MemoryCard.self, matching: moveAction.equipmentID) {
+            print("Card \(card.id) was moved (should flip back)")
+        }
+/*
+        if let updateAction = action as? UpdateEquipmentAction<>,
+           let (card, _) = newSnapshot.equipment(of: MemoryCard.self, matching: updateAction.equipmentID),
+           updateAction.setFaceUp == true {
+            print("Card \(card.id) flipped face up")
+        }
+ */
     }
 
     func playerChangedSeats(_ player: Player, oldSeat: (any TableSeat)?, newSeat: (any TableSeat)?, snapshot: TableSnapshot) {
@@ -34,3 +42,4 @@ class GameObserver: TabletopGame.Observer {
         }
     }
 }
+
